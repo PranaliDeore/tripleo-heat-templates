@@ -13,9 +13,9 @@ parameter_defaults:
   # Type: comma_delimited_list
   GlanceEnabledImportMethods: web-download
 
-  # When using GlanceBackend 'file', Netapp mount NFS share for image storage.
+  # When using GlanceBackend 'file', Netapp copy offload mount NFS share for image storage.
   # Type: boolean
-  GlanceNetappNfsEnabled: False
+  GlanceEnableNetappCopyOffload: False
 
   # NFS mount options for image storage (when GlanceNfsEnabled is true)
   # Type: string
@@ -36,10 +36,6 @@ parameter_defaults:
   # NFS share to mount for image import staging
   # Type: string
   GlanceStagingNfsShare: ''
-
-  # Netapp share to mount for image storage (when GlanceNetappNfsEnabled is true)
-  # Type: string
-  NetappShareLocation: ''
 
   # ******************************************************
   # Static parameters - these are values that must be

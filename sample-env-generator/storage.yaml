@@ -26,8 +26,7 @@ environments:
           - GlanceNfsEnabled
           - GlanceNfsShare
           - GlanceNfsOptions
-          - GlanceNetappNfsEnabled
-          - NetappShareLocation
+          - GlanceEnableNetappCopyOffload
           - GlanceEnabledImportMethods
           - GlanceStagingNfsShare
           - GlanceNodeStagingUri

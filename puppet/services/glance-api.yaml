@@ -109,16 +109,11 @@ parameters:
     description: >
       NFS share to mount for image storage (when GlanceNfsEnabled is true)
     type: string
-  GlanceNetappNfsEnabled:
+  GlanceEnableNetappCopyOffload::
     default: false
     description: >
       When using GlanceBackend 'file', Netapp mount NFS share for image storage.
     type: boolean
-  NetappShareLocation:
-    default: ''
-    description: >
-      Netapp share to mount for image storage (when GlanceNetappNfsEnabled is true)
-    type: string
   GlanceNfsOptions:
     default: '_netdev,bg,intr,context=system_u:object_r:glance_var_lib_t:s0'
     description: >
@@ -318,6 +313,15 @@ outputs:
             - glance_workers_unset
             - {}
             - glance::api::workers: {get_param: GlanceWorkers}
+          -
+            if:
+            - {get_param: GlanceEnableNetappCopyOffload}
+            - tripleo::profile::base::glance::netapp::netapp_share: {get_param: GlanceNfsShare}
+              glance::api::filesystem_store_metadata_file: '/etc/glance/glance-metadata-file.conf'
+              glance::api::filesystem_store_file_perm: 0644
+              glance::api::show_image_direct_url: true
+              glance::api::show_multiple_locations: true
+            - {}
       service_config_settings:
         fluentd:
           tripleo_fluentd_groups_glance_api:
@@ -339,43 +343,26 @@ outputs:
           glance::db::mysql::allowed_hosts:
             - '%'
             - "%{hiera('mysql_bind_host')}"
-      step_config: |
-        include ::tripleo::profile::base::glance::api
+      step_config:
+        list_join:
+          - "\n"
+          - - |
+              include ::tripleo::profile::base::glance::api
+            - if:
+              - {get_param: GlanceEnableNetappCopyOffload}
+              - |
+                include ::tripleo::profile::base::glance::netapp
+              - ''
 
       host_prep_tasks:
-        - name: Mount Netapp NFS
-          vars:
-            netapp_nfs_backend_enable: {get_param: GlanceNetappNfsEnabled}
-          block:
-            - name:
-              set_fact:
-                remote_file_path: /etc/glance/glance-metadata-file.conf
-            - name:
-              file:
-                path: "{{ remote_file_path }}"
-                state: touch
-            - stat: path="{{ remote_file_path }}"
-              register: file_path
-            - copy:
-                content: {"share_location" : "{{item.NETAPP_SHARE}}", "mount_point" : "/var/lib/glance/images", "type" : "nfs",}
-                dest: "{{ remote_file_path }}"
-              with_items:
-                - NETAPP_SHARE: {get_param: NetappShareLocation}
-              when:
-                - file_path.stat.exists == true
-            - name:
-              mount: name=/var/lib/glance/images src="{{item.NETAPP_SHARE}}" fstype=nfs4 opts="{{item.NFS_OPTIONS}}" state=mounted
-              with_items:
-                - NETAPP_SHARE: {get_param: NetappShareLocation}
-                  NFS_OPTIONS: {get_param: GlanceNfsOptions}
-          when: netapp_nfs_backend_enable
         - name: Mount NFS on host
           vars:
+            enable_netapp_copy_offload: {get_param: GlanceEnableNetappCopyOffload}
             nfs_backend_enabled: {get_param: GlanceNfsEnabled}
-            nfs_share: {get_param: GlanceNfsShare}
-            nfs_options: {get_param: GlanceNfsOptions}
-          mount: name=/var/lib/glance/images src="{{nfs_share}}" fstype=nfs opts="{{nfs_options}}" state=mounted
-          when: nfs_backend_enabled
+            NFS_SHARE: {get_param: GlanceNfsShare}
+            NFS_OPTIONS: {get_param: GlanceNfsOptions}
+          mount: name=/var/lib/glance/images src="{{NFS_SHARE}}" fstype=nfs opts="{{NFS_OPTIONS}}" state=mounted
+          when: nfs_backend_enabled or enable_netapp_copy_offload
         - name: Mount Node Staging Location
           vars:
             glance_node_staging_uri: {get_param: GlanceNodeStagingUri}
