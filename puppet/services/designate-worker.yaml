@@ -69,8 +69,22 @@ outputs:
         map_merge:
         - get_attr: [DesignateBase, role_data, config_settings]
         - designate::worker::worker_notify: true
-          tripleo.bind.firewall_rules:
-            '140 bind':
+          dns::vardir: /var/named-persistent
+          dns::additional_options:
+            listen-on:
+              str_replace:
+                template:
+                  "{ 127.0.0.1; %{hiera('$NETWORK')}; }"
+                params:
+                  $NETWORK: {get_param: [ServiceNetMap, BINDNetwork]}
+          tripleo.designate_worker.firewall_rules:
+            '140 designate_worker udp':
+              proto: 'udp'
+              dport:
+                - 53
+                - 953
+            '141 designate_worker tcp':
+              proto: 'tcp'
               dport:
                 - 53
                 - 953

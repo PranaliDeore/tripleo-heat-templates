@@ -17,7 +17,7 @@ Heat templates to deploy OpenStack using OpenStack.
 * Documentation: https://docs.openstack.org/tripleo-docs/latest/
 * Source: http://git.openstack.org/cgit/openstack/tripleo-heat-templates
 * Bugs: https://bugs.launchpad.net/tripleo
-
+* Release notes: https://docs.openstack.org/releasenotes/tripleo-heat-templates/
 Features
 --------
 
@@ -89,7 +89,9 @@ and should be executed according to the following table:
 +----------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
 | neutron-l2gw   |        |        |        |        |   wip  |        |        |        |        |        |
 +----------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
-| rabbitmq       |        |    X   |    X   |    X   |    X   |    X   |    X   |        |    X   |    X   |
+| om-rpc         |        | rabbit | rabbit |  amqp1 | rabbit | rabbit | rabbit |        | rabbit | rabbit |
++----------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
+| om-notify      |        | rabbit | rabbit | rabbit | rabbit | rabbit | rabbit |        | rabbit | rabbit |
 +----------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
 | mongodb        |        |        |        |        |        |        |        |        |        |        |
 +----------------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
